@@ -20,13 +20,7 @@ const Home = () => {
     return () => unsubscribe();
   }, []);
 
-  const navigate = useNavigate();
-  const {user}= userStore();
-  useEffect(()=>{
-    if(!user){
-      navigate("/auth")
-    }
-  },[])
+  
   return (
    <>
    <p>Welcome</p>
