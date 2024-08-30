@@ -23,7 +23,7 @@ const Home = () => {
   
   return (
    <>
-   <p>Welcome</p>
+   <p>Welcome to trip planner</p>
     <Link to='/make-trip'>
     Get Started
     </Link>
