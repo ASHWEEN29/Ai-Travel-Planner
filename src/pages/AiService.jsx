@@ -5,7 +5,7 @@ import React from "react";
 const getAICompletion = async (prompt) => {
     try {
         console.log(prompt )
-        const apiKey = '657bb6e8603f489d8f61df60374198bc';
+        const apiKey = import.meta.env.VITE_APP_API_KEY;
         const response = await fetch('https://api.aimlapi.com/chat/completions', {
             method: 'POST',
             headers: {
