@@ -4,8 +4,8 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #000000;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #f0f4f8;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,24 +15,27 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #007bff;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #0056b3;
 }
 
 body {
   margin: 0;
   display: flex;
   place-items: center;
+  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
+  background: linear-gradient(to bottom right, #d0e1f9, #f7f9fc);
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.5em;
   line-height: 1.1;
+  color: #333;
 }
 
 button {
@@ -42,16 +45,70 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #007bff;
+  color: #ffffff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #0056b3;
+  background-color: #0056b3;
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+input, textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1em; /* Increased padding */
+  font-size: 1.2em; /* Increased font size */
+  font-family: inherit;
+  color: #333;
+  background-color: #ffffff;
+  transition: border-color 0.25s, background-color 0.25s;
+  margin-bottom: 1em; /* Added margin for spacing */
+}
+input:focus, textarea:focus {
+  border-color: #007bff;
+  background-color: #f0f4f8;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1em;
+  margin-bottom: 1.5em; /* Added margin for spacing */
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5em;
+}
+
+.radio-group input[type="radio"] {
+  display: none;
+}
+
+.radio-group .radio-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #ffffff;
+  transition: border-color 0.25s, background-color 0.25s;
+  font-size: 2em; /* Increased font size */
+  color: #333;
+}
+
+.radio-group input[type="radio"]:checked + .radio-box {
+  border-color: #007bff;
+  background-color: #e0f7fa;
 }
 
 @media (prefers-color-scheme: light) {
@@ -60,9 +117,16 @@ button:focus-visible {
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    color: #0056b3;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #007bff;
+    color: #ffffff;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+  input, textarea {
+    border-color: #d1d5db;
   }
 }

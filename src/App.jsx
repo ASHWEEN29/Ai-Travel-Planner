@@ -1,5 +1,4 @@
 // src/App.jsx
-
 import React, { useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Login from "./Auth/Login";
@@ -8,6 +7,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import userStore from "./context/store";
 import TripForm from "./pages/Tripform";
 import PlanDisplay from "./pages/PlanDisplay";
+import VisitHistory from "./pages/VisitHistory"; // Import the VisitHistory component
 
 function App() {
   const navigate = useNavigate();
@@ -32,6 +32,7 @@ function App() {
       <Route path="/auth" element={<Login />} />
       <Route path="/make-trip" element={<TripForm />} />
       <Route path="/trip-plan" element={<PlanDisplay />} />
+      <Route path="/visit-history" element={<VisitHistory />} /> {/* Add the new route */}
     </Routes>
   );
 }

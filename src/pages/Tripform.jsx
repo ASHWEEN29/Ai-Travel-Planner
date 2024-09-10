@@ -1,110 +1,40 @@
-// src/pages/TripForm.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import getAICompletion from './AiService';
-import { db, auth } from '../Auth/firebaseConfig';
-import { doc, setDoc, collection } from "firebase/firestore"; 
-import PlanDisplay from './PlanDisplay';
+import getAICompletion from './AiService'; // Ensure this path is correct
+import { doc, setDoc, collection } from 'firebase/firestore'; 
+import { db, auth } from '../Auth/firebaseConfig'; // Ensure this path is correct
 
-const cities = [
-    "Mumbai, Maharashtra, India",
-  "Delhi, Delhi, India",
-  "Bangalore, Karnataka, India",
-  "Hyderabad, Telangana, India",
-  "Ahmedabad, Gujarat, India",
-  "Chennai, Tamil Nadu, India",
-  "Kolkata, West Bengal, India",
-  "Surat, Gujarat, India",
-  "Pune, Maharashtra, India",
-  "Jaipur, Rajasthan, India",
-  "New York, USA",
-  "Los Angeles, USA",
-  "London, UK",
-  "Paris, France",
-  "Tokyo, Japan",
-  "Shanghai, China",
-  "Beijing, China",
-  "Istanbul, Turkey",
-  "Buenos Aires, Argentina",
-  "Moscow, Russia",
-  "São Paulo, Brazil",
-  "Mexico City, Mexico",
-  "Cairo, Egypt",
-  "Sydney, Australia",
-  "Seoul, South Korea",
-  "Jakarta, Indonesia",
-  "Lagos, Nigeria",
-  "Karachi, Pakistan",
-  "Dubai, UAE",
-  "Bangkok, Thailand",
-  "Hong Kong, Hong Kong",
-  "Singapore, Singapore",
-  "Madrid, Spain",
-  "Barcelona, Spain",
-  "Berlin, Germany",
-  "Rome, Italy",
-  "Toronto, Canada",
-  "Vancouver, Canada",
-  "Kuala Lumpur, Malaysia",
-  "Riyadh, Saudi Arabia",
-  "Tehran, Iran",
-  "Lima, Peru",
-  "Santiago, Chile",
-  "Manila, Philippines",
-  "Melbourne, Australia",
-  "Chicago, USA",
-  "San Francisco, USA",
-  "Miami, USA",
-  "Rio de Janeiro, Brazil",
-  "Ho Chi Minh City, Vietnam",
-  "Warsaw, Poland",
-  "Vienna, Austria",
-  "Zurich, Switzerland",
-  "Amsterdam, Netherlands",
-  "Brussels, Belgium",
-  "Stockholm, Sweden",
-  "Oslo, Norway",
-  "Copenhagen, Denmark",
-  "Dublin, Ireland",
-  "Lisbon, Portugal",
-  "Athens, Greece",
-  "Budapest, Hungary",
-  "Prague, Czech Republic",
-  "Helsinki, Finland",
-  "Brisbane, Australia",
-  "Auckland, New Zealand",
-  "Cape Town, South Africa",
-  "Johannesburg, South Africa",
-  "Tel Aviv, Israel",
-  "Kyiv, Ukraine",
-  "Bucharest, Romania",
-  "Belgrade, Serbia",
-  "Havana, Cuba",
-  "Sofia, Bulgaria",
-  "Nairobi, Kenya",
-  "Abu Dhabi, UAE",
-  "Doha, Qatar",
-  "Muscat, Oman",
-  "Beirut, Lebanon",
-  "Tashkent, Uzbekistan",
-  "Almaty, Kazakhstan",
-  "Ashgabat, Turkmenistan",
-  "Colombo, Sri Lanka",
-  "Kathmandu, Nepal",
-  "Phnom Penh, Cambodia",
-  "Vientiane, Laos",
-  "Thimphu, Bhutan",
-  "Minsk, Belarus",
-  "Tbilisi, Georgia",
-  "Yerevan, Armenia",
-  "Baku, Azerbaijan",
-  "Skopje, North Macedonia",
-  "Tirana, Albania",
-  "Podgorica, Montenegro",
-  "Sarajevo, Bosnia and Herzegovina"
-  ];
-  
+const tripTypes = [
+  { value: 'Family', emoji: '👨‍👩‍👧‍👦' },
+  { value: 'Solo', emoji: '👤' },
+  { value: 'Couple', emoji: '💑' },
+  { value: 'Friends', emoji: '👫' },
+];
+
+const cities = [ /* Your cities array */ ];
+
+function useTypewriterEffect(text, delay = 50) {
+  const [displayedText, setDisplayedText] = useState('');
+
+  useEffect(() => {
+    let currentIndex = 0;
+
+    if (!text) return;
+
+    const timer = setInterval(() => {
+      setDisplayedText((prev) => prev + text[currentIndex]);
+      currentIndex++;
+
+      if (currentIndex === text.length) {
+        clearInterval(timer);
+      }
+    }, delay);
+
+    return () => clearInterval(timer); // Clean up the timer on component unmount
+  }, [text, delay]);
+
+  return displayedText;
+}
 
 function TripForm() {
   const [tripPlan, setTripPlan] = useState('');
@@ -115,8 +45,16 @@ function TripForm() {
   const [suggestions, setSuggestions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const typedTripPlan = useTypewriterEffect(tripPlan, 50); // 50ms delay between characters
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check for empty fields
+    if (!location || !numberOfDays || !budget || !typeOfTrip) {
+      alert('Please fill out all fields.');
+      return;
+    }
 
     const prompt = `
       Generate a day-wise travel plan for a ${typeOfTrip} trip to ${location}. 
@@ -126,7 +64,9 @@ function TripForm() {
     `;
 
     try {
+      console.log('Prompt:', prompt); // Log the prompt to ensure it's correct
       const plan = await getAICompletion(prompt);
+      console.log('Plan:', plan); // Log the received plan
       setTripPlan(plan);
 
       const user = auth.currentUser;
@@ -184,7 +124,7 @@ function TripForm() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.addEventListener('click', handleDocumentClick);
     return () => {
       document.removeEventListener('click', handleDocumentClick);
@@ -192,193 +132,124 @@ function TripForm() {
   }, []);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formWrapper}>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.dropdownContainer}>
-            <label style={styles.label}>
-              Location:
-              <input 
-                type="text" 
-                value={location} 
-                onChange={handleLocationChange} 
-                style={styles.input}
-              />
-            </label>
-            {isDropdownOpen && suggestions.length > 0 && (
-              <ul style={styles.suggestions}>
-                {suggestions.map((suggestion, index) => (
-                  <li
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    style={styles.suggestionItem}
-                  >
-                    {suggestion}
-                  </li>
-                ))}
-              </ul>
-            )}
+    <div className="flex flex-col justify-center items-center min-h-screen py-12 px-4">
+      <div className="w-full max-w-5xl bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+        <h1 className="font-bold text-gray-800 text-4xl mb-6 text-center">
+          Plan Your Perfect Trip 🚀🌎
+        </h1>
+        <p className="text-gray-600 text-lg text-center max-w-prose mx-auto mb-10">
+          Share your travel preferences and we'll craft a customized itinerary just for you.
+        </p>
+
+        <div className="flex flex-col lg:flex-row lg:space-x-10">
+          {/* Container for Form and Trip Plan */}
+          <div className="flex flex-col w-full lg:w-1/2">
+            {/* Form Section */}
+            <div className="mb-10">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="relative">
+                  <label className="block text-gray-800 text-2xl font-bold mb-2">
+                    Destination:
+                  </label>
+                  <input 
+                    type="text" 
+                    value={location} 
+                    onChange={handleLocationChange} 
+                    className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none transition"
+                    placeholder="Enter your destination"
+                    required
+                  />
+                  {isDropdownOpen && suggestions.length > 0 && (
+                    <ul className="absolute top-full left-0 right-0 border border-gray-300 rounded-lg mt-2 max-h-48 overflow-y-auto bg-white shadow-lg z-10">
+                      {suggestions.map((suggestion, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="cursor-pointer p-3 hover:bg-gray-200 transition"
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 text-2xl font-bold mb-2">
+                    Number of Days:
+                  </label>
+                  <input 
+                    type="number" 
+                    value={numberOfDays} 
+                    onChange={(e) => setNumberOfDays(e.target.value)} 
+                    className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none transition"
+                    placeholder="e.g., 5"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 text-2xl font-bold mb-2">
+                    Budget:
+                  </label>
+                  <input 
+                    type="text" 
+                    value={budget} 
+                    onChange={(e) => setBudget(e.target.value)} 
+                    className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none transition"
+                    placeholder="e.g., $2000"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 text-2xl font-bold mb-2">
+                    Type of Trip:
+                  </label>
+                  <div className="radio-group">
+                    {tripTypes.map((type) => (
+                      <label key={type.value} className="flex items-center cursor-pointer mb-3">
+                        <input
+                          type="radio"
+                          name="typeOfTrip"
+                          value={type.value}
+                          checked={typeOfTrip === type.value}
+                          onChange={() => setTypeOfTrip(type.value)}
+                          className="hidden"
+                          required
+                        />
+                        <div className={`radio-box ${typeOfTrip === type.value ? 'border-teal-500 bg-teal-50' : ''}`}>
+                          {type.emoji}
+                        </div>
+                        <span className="ml-2 text-xl font-semibold">{type.value}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <button type="submit" className="bg-teal-500 text-white hover:bg-teal-600 transition">Generate Plan</button>
+                  {tripPlan && (
+                    <button type="button" onClick={handleDownloadPDF} className="bg-gray-500 text-white hover:bg-gray-600 transition">Download PDF</button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
-          <br />
-          <label style={styles.label}>
-            Number of Days:
-            <input 
-              type="number" 
-              value={numberOfDays} 
-              onChange={(e) => setNumberOfDays(e.target.value)} 
-              style={styles.input}
-            />
-          </label>
-          <br />
-          <label style={styles.label}>
-            Budget:
-            <input 
-              type="text" 
-              value={budget} 
-              onChange={(e) => setBudget(e.target.value)} 
-              style={styles.input}
-            />
-          </label>
-          <br />
-          <div style={styles.radioGroup}>
-            <span style={styles.label}>Type of Trip:</span>
-            {['Family', 'Couple', 'Solo', 'Friends'].map((type) => (
-              <label key={type} style={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="tripType"
-                  value={type}
-                  checked={typeOfTrip === type}
-                  onChange={(e) => setTypeOfTrip(e.target.value)}
-                  style={styles.radioInput}
-                />
-                <span style={typeOfTrip === type ? { ...styles.radioButton, ...styles.radioButtonChecked } : styles.radioButton}></span>
-                {type}
-              </label>
-            ))}
-          </div>
-          <br />
-          <button type="submit" style={styles.button}>Generate Plan</button>
-        </form>
-        {tripPlan && (
-          <>
-            <button 
-              onClick={handleDownloadPDF}
-              style={{ ...styles.button, marginTop: '20px' }}
-            >
-              Download PDF
-            </button>
-            <PlanDisplay tripPlan={tripPlan} />
-          </>
-        )}
+
+          {/* Generated Text Section */}
+          {tripPlan && (
+            <div className="w-full lg:w-1/2 bg-gray-100 p-6 rounded-lg border border-gray-300 max-w-full">
+              <h2 className="text-gray-800 text-2xl font-bold mb-4">Your Trip Plan:</h2>
+              <p className="text-gray-900 text-lg font-bold whitespace-pre-line break-words">
+                {typedTripPlan}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    width: '100vw',
-    backgroundColor: '#000', // Black background for the page
-    color: '#fff', // White text for contrast
-  },
-  formWrapper: {
-    backgroundColor: '#1e1e1e', // Dark background for the form
-    borderRadius: '8px',
-    padding: '20px',
-    boxShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
-    width: '100%',
-    maxWidth: '800px', // Set max width for larger screens
-    boxSizing: 'border-box',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  label: {
-    marginBottom: '10px',
-    fontWeight: 'bold',
-    color: '#ccc', // Lighter color for labels
-  },
-  input: {
-    padding: '10px',
-    fontSize: '16px',
-    borderRadius: '5px',
-    border: '1px solid #444', // Dark border
-    backgroundColor: '#333', // Dark background for inputs
-    color: '#fff', // Light text color
-    width: '100%',
-    marginTop: '5px',
-  },
-  button: {
-    padding: '10px 20px',
-    fontSize: '16px',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginTop: '10px',
-  },
-  radioGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  radioLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '5px',
-    color: '#ccc',
-  },
-  radioInput: {
-    display: 'none',
-  },
-  radioButton: {
-    display: 'inline-block',
-    width: '20px',
-    height: '20px',
-    borderRadius: '4px',
-    border: '2px solid #28a745',
-    marginRight: '10px',
-    verticalAlign: 'middle',
-    position: 'relative',
-  },
-  radioButtonChecked: {
-    backgroundColor: '#28a745',
-    borderColor: '#28a745',
-  },
-  dropdownContainer: {
-    position: 'relative',
-    width: '100%',
-  },
-  suggestions: {
-    listStyleType: 'none',
-    padding: '0',
-    margin: '0',
-    border: '1px solid #444',
-    borderRadius: '5px',
-    width: '100%',
-    backgroundColor: '#333',
-    boxShadow: '0 2px 5px rgba(255, 255, 255, 0.2)',
-    position: 'absolute',
-    zIndex: '1000',
-    maxHeight: '150px',
-    overflowY: 'auto',
-  },
-  suggestionItem: {
-    padding: '10px',
-    cursor: 'pointer',
-    borderBottom: '1px solid #444',
-    color: '#fff',
-  },
-  suggestionItemHover: {
-    backgroundColor: '#444',
-  },
-};
 
 export default TripForm;
