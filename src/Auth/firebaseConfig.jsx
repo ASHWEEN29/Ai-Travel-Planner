@@ -10,7 +10,7 @@ import {
 } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBgL_l5SWs7eoH06rRNw84NBPHjkt7ihqc",
+  apiKey: import.meta.env.VITE_APP_FIREBASE_API_KEY,
   authDomain: "ai-travel-planner-23f63.firebaseapp.com",
   databaseURL: "https://ai-travel-planner-23f63-default-rtdb.firebaseio.com",
   projectId: "ai-travel-planner-23f63",

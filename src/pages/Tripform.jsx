@@ -11,7 +11,7 @@ const tripTypes = [
   { value: 'Friends', emoji: '👫' },
 ];
 
-const cities = [ /* Your cities array */ ];
+const cities = [  ];
 
 function useTypewriterEffect(text, delay = 50) {
   const [displayedText, setDisplayedText] = useState('');
