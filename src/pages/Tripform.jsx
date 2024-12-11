@@ -11,7 +11,7 @@ const tripTypes = [
   { value: 'Friends', emoji: '👫' },
 ];
 
-const cities = [  ];
+const cities = []; // Populate this with actual city names or fetch dynamically
 
 function useTypewriterEffect(text, delay = 50) {
   const [displayedText, setDisplayedText] = useState('');
@@ -57,10 +57,10 @@ function TripForm() {
     }
 
     const prompt = `
-      Generate a day-wise travel plan for a ${typeOfTrip} trip to ${location}. 
-      The trip will last ${numberOfDays} days with a budget of ${budget}. 
-      Provide a detailed itinerary daywise next day in next line, including activities, dining options, and any recommendations.
-      within 400 tokens
+       Generate a day-wise travel plan for a ${typeOfTrip} trip to ${location}. 
+      The trip will last ${numberOfDays} days with a budget of ${budget}. .
+      Within 400 words . Short and simple
+      
     `;
 
     try {
