@@ -7,7 +7,8 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import userStore from "./context/store";
 import TripForm from "./pages/Tripform";
 import PlanDisplay from "./pages/PlanDisplay";
-import VisitHistory from "./pages/VisitHistory"; // Import the VisitHistory component
+import VisitHistory from "./pages/VisitHistory";
+import SuggestTrip  from "./pages/SuggestTrip"; // Import the VisitHistory component
 
 function App() {
   const navigate = useNavigate();
@@ -32,7 +33,8 @@ function App() {
       <Route path="/auth" element={<Login />} />
       <Route path="/make-trip" element={<TripForm />} />
       <Route path="/trip-plan" element={<PlanDisplay />} />
-      <Route path="/visit-history" element={<VisitHistory />} /> {/* Add the new route */}
+      <Route path="/visit-history" element={<VisitHistory />} />
+      <Route path="/suggest-trip" element={<SuggestTrip />} /> {/* Add the new route */}
     </Routes>
   );
 }

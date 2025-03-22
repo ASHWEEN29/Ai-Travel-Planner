@@ -80,6 +80,7 @@ function TripForm() {
           tripPlan: plan,
           visitedAt: new Date().toISOString(),
         });
+        console.log("saved");
       }
     } catch (error) {
       console.error("Failed to submit trip data:", error);

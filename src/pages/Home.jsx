@@ -26,9 +26,10 @@ const Home = () => {
           <div style={styles.userContainer}>
             <p style={styles.userEmail}>Logged in as: {user.email}</p>
             <div style={styles.buttonContainer}>
-              <Link to='/make-trip' style={styles.button}>Get Started</Link>
+              <Link to='/make-trip' style={styles.button}>Make Trip plan</Link>
+              <Link to='/suggest-trip' style={styles.button}>Suggest Trip</Link>
               <Link to='/visit-history' style={styles.button}>View History</Link>
-              <button onClick={handleLogout} style={styles.button}>Logout</button>
+              <button onClick={handleLogout} style={styles.logoutbutton}>Logout</button>
             </div>
           </div>
         ) : (
@@ -113,6 +114,26 @@ const styles = {
     alignItems: 'center',
     width: '100%',
     gap: '1rem',
+  },
+  logoutbutton:{
+    display: 'inline-block',
+    padding: '1rem 2rem',
+    fontSize: '1rem',
+    backgroundColor: 'red',
+    color: '#ffffff',
+    textDecoration: 'none',
+    borderRadius: '0.5rem',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease, transform 0.3s ease',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    animation: 'fadeIn 2s ease-out',
+    fontWeight: '600',
+    letterSpacing: '0.5px',
+    ':hover': {
+      backgroundColor: '#155a8a',
+      transform: 'translateY(-2px)',
+    },
   },
   button: {
     display: 'inline-block',
