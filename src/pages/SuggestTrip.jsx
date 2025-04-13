@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { motion } from 'framer-motion';
 import getAICompletion from './AiService';
@@ -17,15 +17,53 @@ function SuggestTrip() {
   const [numberOfDays, setNumberOfDays] = useState('');
   const [budget, setBudget] = useState('');
   const [typeOfTrip, setTypeOfTrip] = useState('');
+  const [userLocation, setUserLocation] = useState('');
+  const [locationDetected, setLocationDetected] = useState(false);
+
+  // Reverse geocode from lat/lon to city using OpenStreetMap
+  const getCityFromCoords = async (lat, lon) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+      );
+      const data = await response.json();
+      const city =
+        data.address.city ||
+        data.address.town ||
+        data.address.village ||
+        data.address.state ||
+        '';
+      if (city) {
+        setUserLocation(city);
+        setLocationDetected(true);
+      }
+    } catch (error) {
+      console.error('Reverse geocoding failed:', error);
+    }
+  };
+
+  // Auto-detect user location on load
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        getCityFromCoords(latitude, longitude);
+      },
+      (error) => {
+        console.warn('Geolocation denied or failed:', error.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!numberOfDays || !budget || !typeOfTrip) {
+    if (!numberOfDays || !budget || !typeOfTrip || !userLocation) {
       alert('Please fill out all fields.');
       return;
     }
 
-    const prompt = `Generate a day-wise travel plan for a ${typeOfTrip} trip lasting ${numberOfDays} days with a budget of ₹${budget}. Keep it within 400 words, short and simple.`;
+    const prompt = `Generate a day-wise travel itinerary for a ${typeOfTrip} trip lasting ${numberOfDays} days with a budget of ₹${budget}, starting from ${userLocation}. Keep it short, simple, and within 400 words.`;
 
     try {
       const plan = await getAICompletion(prompt);
@@ -33,26 +71,27 @@ function SuggestTrip() {
 
       const user = auth.currentUser;
       if (user) {
-        const visitRef = doc(collection(db, "users", user.uid, "suggestedTrips"));
+        const visitRef = doc(collection(db, 'users', user.uid, 'suggestedTrips'));
         await setDoc(visitRef, {
           numberOfDays,
           budget,
           typeOfTrip,
+          userLocation,
           tripPlan: plan,
           generatedAt: new Date().toISOString(),
         });
       }
     } catch (error) {
-      console.error("Failed to generate trip plan:", error);
+      console.error('Failed to generate trip plan:', error);
     }
   };
 
   const handleDownloadPDF = () => {
     if (!tripPlan) return;
-    const doc = new jsPDF();
-    const lines = doc.splitTextToSize(tripPlan, 180);
-    doc.text(lines, 10, 10);
-    doc.save('suggested-trip-plan.pdf');
+    const docPDF = new jsPDF();
+    const lines = docPDF.splitTextToSize(tripPlan, 180);
+    docPDF.text(lines, 10, 10);
+    docPDF.save('suggested-trip-plan.pdf');
   };
 
   return (
@@ -66,6 +105,26 @@ function SuggestTrip() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-gray-800 text-2xl font-bold mb-2">Where are you from?</label>
+            <input
+              type="text"
+              value={userLocation}
+              onChange={(e) => {
+                setUserLocation(e.target.value);
+                setLocationDetected(false); // Allow manual override
+              }}
+              className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+              placeholder="e.g., Mumbai"
+              required
+            />
+            {locationDetected && (
+              <p className="text-green-600 mt-1 text-sm">
+                📍 Location auto-detected. You can change it if needed.
+              </p>
+            )}
+          </div>
+
           <div>
             <label className="block text-gray-800 text-2xl font-bold mb-2">Number of Days:</label>
             <input
@@ -91,29 +150,27 @@ function SuggestTrip() {
           </div>
 
           <div>
-                  <label className="block text-gray-800 text-2xl font-bold mb-2">
-                    Type of Trip:
-                  </label>
-                  <div className="radio-group">
-                    {tripTypes.map((type) => (
-                      <label key={type.value} className="flex items-center cursor-pointer mb-3">
-                        <input
-                          type="radio"
-                          name="typeOfTrip"
-                          value={type.value}
-                          checked={typeOfTrip === type.value}
-                          onChange={() => setTypeOfTrip(type.value)}
-                          className="hidden"
-                          required
-                        />
-                        <div className={`radio-box ${typeOfTrip === type.value ? 'border-teal-500 bg-teal-50' : ''}`}>
-                          {type.emoji}
-                        </div>
-                        <span className="ml-2 text-xl font-semibold">{type.value}</span>
-                      </label>
-                    ))}
+            <label className="block text-gray-800 text-2xl font-bold mb-2">Type of Trip:</label>
+            <div className="radio-group">
+              {tripTypes.map((type) => (
+                <label key={type.value} className="flex items-center cursor-pointer mb-3">
+                  <input
+                    type="radio"
+                    name="typeOfTrip"
+                    value={type.value}
+                    checked={typeOfTrip === type.value}
+                    onChange={() => setTypeOfTrip(type.value)}
+                    className="hidden"
+                    required
+                  />
+                  <div className={`radio-box ${typeOfTrip === type.value ? 'border-teal-500 bg-teal-50' : ''}`}>
+                    {type.emoji}
                   </div>
-                </div>
+                  <span className="ml-2 text-xl font-semibold">{type.value}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <div className="flex justify-center">
             <button
